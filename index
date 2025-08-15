@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mannheim ECU – Mercedes LKW ECU Lösungen</title>
+  <meta name="description" content="Professionelle ECU-Programmierung, Steuergeräte-Austausch, DPF-Regeneration und Schlüsselcodierung für Mercedes LKW in Mannheim." />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <style>
+    /* =========
+       Design Tokens
+       ========= */
+    :root{
+      --bg: radial-gradient(1200px 800px at 10% -10%, #0b1830 0%, #0b0f1a 35%, #090b12 100%);
+      --bg-plain:#0c111b;
+      --surface: rgba(255,255,255,0.06);
+      --surface-strong: rgba(255,255,255,0.12);
+      --text: #e8eef7;
+      --muted: #a7b3c6;
+      --primary: #3fb3ff;
+      --accent: #22e6b8;
+      --success:#7ddc7a;
+      --warning:#ffbe55;
+      --danger:#ff6b6b;
+      --ring: rgba(63,179,255,.45);
+      --radius: 18px;
+      --shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+      --glass-blur: 16px;
+      --pad: clamp(16px, 2.5vw, 28px);
+      --maxw: 1180px;
+    }
+    @media (prefers-color-scheme: light){
+      :root{
+        --bg: radial-gradient(1200px 800px at 10% -10%, #eef5ff 0%, #f7fbff 35%, #ffffff 100%);
+        --bg-plain:#ffffff;
+        --surface: rgba(0,0,0,0.04);
+        --surface-strong: rgba(0,0,0,0.08);
+        --text:#0d1b2a;
+        --muted:#516072;
+        --ring: rgba(34, 230, 184, .45);
+        --shadow: 0 8px 26px rgba(6,24,44,.15), inset 0 1px 0 rgba(255,255,255,.6);
+      }
+    }
+
+    /* =========
+       Base / Reset
+       ========= */
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font: 400 clamp(15px, 1.1vw + .4rem, 18px)/1.6 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      color:var(--text);
+      background: var(--bg), var(--bg-plain);
+      background-attachment: fixed;
+      letter-spacing:.2px;
+    }
+    img{max-width:100%; height:auto; display:block}
+    a{color:var(--primary); text-decoration:none}
+    a:hover{text-decoration:underline}
+    .container{width:100%; max-width:var(--maxw); margin:auto; padding-inline: var(--pad)}
+
+    /* =========
+       Utilities
+       ========= */
+    .glass{
+      background: var(--surface);
+      -webkit-backdrop-filter: saturate(140%) blur(var(--glass-blur));
+      backdrop-filter: saturate(140%) blur(var(--glass-blur));
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .btn{
+      display:inline-block; border-radius:999px; padding:.8rem 1.1rem; font-weight:600;
+      transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease, color .2s ease;
+      outline: none; border:1px solid transparent;
+    }
+    .btn-primary{ background: linear-gradient(180deg, var(--primary), #2a84ff); color:#001122; box-shadow: 0 8px 22px rgba(63,179,255,.35)}
+    .btn-outline{ background: transparent; border-color: var(--surface-strong); color: var(--text)}
+    .btn:hover{ transform: translateY(-1px)}
+    .btn:focus-visible{ box-shadow: 0 0 0 6px var(--ring)}
+    .chip{display:inline-flex; align-items:center; gap:.5rem; padding:.35rem .7rem; border-radius:999px; border:1px solid var(--surface-strong); background:rgba(255,255,255,.04)}
+    .section{padding: clamp(56px, 8vw, 100px) 0}
+    .kbd{font:600 .85rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); padding:.2rem .45rem; border-radius:8px}
+    .grid{display:grid; gap: clamp(16px, 2.5vw, 28px)}
+    .grid-3{grid-template-columns: repeat(3, minmax(0,1fr))}
+    .grid-2{grid-template-columns: repeat(2, minmax(0,1fr))}
+    @media (max-width:980px){ .grid-3{grid-template-columns: 1fr 1fr} }
+    @media (max-width:680px){ .grid-3,.grid-2{grid-template-columns: 1fr} }
+
+    /* =========
+       Skip Link
+       ========= */
+    .skip{
+      position: absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden;
+    }
+    .skip:focus{
+      left: var(--pad); top: var(--pad); width:auto; height:auto; z-index:9999;
+      padding:.6rem .9rem; background:#000; color:#fff; border-radius:10px;
+    }
+
+    /* =========
+       Header / Nav
+       ========= */
+    header{
+      position: sticky; top:0; z-index: 50; padding: .6rem 0;
+      background: linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,0));
+      backdrop-filter: blur(10px);
+    }
+    .nav{
+      display:flex; align-items:center; justify-content:space-between; gap:1rem;
+    }
+    .brand{display:flex; align-items:center; gap:.8rem; text-decoration:none}
+    .logo{
+      width:40px; height:40px; border-radius:10px; display:grid; place-items:center;
+      background: linear-gradient(180deg, var(--accent), #0dd3a1);
+      color:#00221b; font-weight:800; letter-spacing:.5px;
+      box-shadow: 0 8px 18px rgba(34,230,184,.25);
+    }
+    .brand span{font-weight:800; letter-spacing:.4px}
+    nav ul{display:flex; gap:.6rem .6rem; list-style:none; padding:0; margin:0; flex-wrap:wrap}
+    nav a{
+      display:inline-block; padding:.6rem .8rem; border-radius:999px; color:var(--text);
+      border:1px solid transparent;
+    }
+    nav a:hover{ background: var(--surface)}
+    nav a:focus-visible{ box-shadow: 0 0 0 6px var(--ring)}
+    .nav-cta{display:flex; gap:.6rem; align-items:center}
+
+    /* =========
+       Hero
+       ========= */
+    .hero{
+      position: relative; overflow: hidden; border-radius: calc(var(--radius) + 6px);
+      padding: clamp(56px, 9vw, 120px) var(--pad);
+      background:
+        radial-gradient(1200px 400px at 80% 10%, rgba(63,179,255,.25), transparent 60%),
+        radial-gradient(1000px 400px at 10% 90%, rgba(34,230,184,.2), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: var(--shadow);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      isolation:isolate;
+    }
+    .hero h1{
+      font-weight: 900;
+      font-size: clamp(28px, 2.4vw + 1.1rem, 52px);
+      line-height: 1.1;
+      margin: 0 0 .6rem 0;
+      letter-spacing:.2px;
+    }
+    .hero p{max-width: 68ch; color: var(--muted); margin: 0 0 1.1rem 0}
+    .hero-cta{display:flex; gap:.6rem; flex-wrap:wrap; margin-top:.6rem}
+    .hero-figure{
+      position:absolute; inset: -10% -10% auto auto; z-index:-1; opacity:.35;
+      min-height: 400px; pointer-events:none; background:
+      url('https://images.unsplash.com/photo-1606229365485-412a09fa49c0?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat;
+      filter: saturate(80%) hue-rotate(180deg) contrast(105%) brightness(90%) blur(2px);
+      mask-image: radial-gradient(60% 60% at 70% 30%, rgba(0,0,0,1), transparent 70%);
+    }
+
+    /* =========
+       Cards / Services
+       ========= */
+    .card{
+      padding: 1.1rem; border-radius: var(--radius); position:relative; overflow:hidden;
+    }
+    .card h3{margin: .2rem 0 .5rem}
+    .card p{margin: 0 0 .8rem 0; color:var(--muted)}
+    .card a.more{font-weight:600}
+    .card::after{
+      content:""; position:absolute; inset:0; pointer-events:none;
+      background: radial-gradient(400px 200px at 100% 0%, rgba(63,179,255,.18), transparent 40%);
+    }
+
+    /* =========
+       Testimonials (CSS-only strip)
+       ========= */
+    .testi{
+      display:grid; gap: 14px; scroll-snap-type: x mandatory; overflow:auto; grid-auto-flow: column;
+      padding-bottom: .4rem;
+    }
+    .testi .t{
+      min-width: min(520px, 90vw); scroll-snap-align: start; padding:1rem; position:relative;
+    }
+    .t q{display:block; font-size: clamp(16px, 1.2rem, 20px)}
+    .t .who{margin-top:.7rem; color:var(--muted); font-weight:600}
+
+    /* =========
+       About / Bullets
+       ========= */
+    .bullets{display:grid; gap:.6rem}
+    .bullets li{list-style:"✓  "; padding-left:.2rem}
+
+    /* =========
+       Banner / Callout
+       ========= */
+    .banner{
+      display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+      padding: 1rem 1.2rem;
+      border-left: 4px solid var(--accent);
+    }
+
+    /* =========
+       FAQ
+       ========= */
+    details{
+      border:1px solid var(--surface-strong); border-radius: 14px; padding:.8rem 1rem; background: rgba(255,255,255,.03);
+    }
+    summary{cursor:pointer; font-weight:700; outline:none}
+    details[open]{background: rgba(255,255,255,.06)}
+    details + details{margin-top:.6rem}
+
+    /* =========
+       Contact / Form
+       ========= */
+    .contact-grid{display:grid; grid-template-columns: 1.1fr .9fr; gap: clamp(16px, 2.5vw, 28px)}
+    @media (max-width:880px){ .contact-grid{grid-template-columns: 1fr} }
+    form{
+      display:grid; gap:.8rem;
+      padding: 1rem;
+      border:1px solid var(--surface-strong);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.04);
+    }
+    label{font-weight:600}
+    input, select, textarea{
+      width:100%; padding:.8rem .9rem; border-radius: 12px; border:1px solid var(--surface-strong);
+      background: rgba(0,0,0,.2); color:var(--text); outline:none;
+      transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+    }
+    input::placeholder, textarea::placeholder{color: #8aa0b7}
+    input:focus, select:focus, textarea:focus{ box-shadow:0 0 0 6px var(--ring); border-color: transparent; background: rgba(0,0,0,.28)}
+    textarea{min-height: 140px; resize: vertical}
+
+    .note{font-size:.95rem; color:var(--muted)}
+
+    /* =========
+       Footer
+       ========= */
+    footer{
+      margin-top: 60px;
+      padding: 40px var(--pad);
+      border-top: 1px solid var(--surface-strong);
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    }
+    .footer-grid{display:grid; grid-template-columns: 2fr 1fr 1fr; gap: 18px}
+    @media (max-width:880px){ .footer-grid{grid-template-columns: 1fr 1fr} }
+    @media (max-width:620px){ .footer-grid{grid-template-columns: 1fr} }
+    .tiny{font-size:.92rem; color:var(--muted)}
+
+    /* =========
+       Motion prefs
+       ========= */
+    @media (prefers-reduced-motion: reduce){
+      *{animation: none !important; transition: none !important; scroll-behavior: auto !important}
+    }
+
+    /* =========
+       Sticky mobile CTA & WhatsApp
+       ========= */
+    .sticky-cta{
+      position: fixed; right: 16px; bottom: 16px; z-index: 60;
+      display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;
+    }
+    .fab{
+      display:inline-grid; place-items:center; width:56px; height:56px; border-radius: 999px;
+      background: linear-gradient(180deg, #25D366, #128C7E); color:#001b14; font-weight:900;
+      border:1px solid rgba(255,255,255,.18); box-shadow: 0 8px 22px rgba(18,140,126,.35);
+      text-decoration:none;
+    }
+    .fab:focus-visible{ box-shadow: 0 0 0 6px var(--ring) }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Zum Inhalt springen</a>
+
+  <!-- Header -->
+  <header>
+    <div class="container nav">
+      <a class="brand" href="#top" aria-label="Mannheim ECU Logo, Startseite">
+        <span class="logo">ME</span>
+        <span>Mannheim ECU</span>
+      </a>
+      <nav aria-label="Hauptnavigation">
+        <ul>
+          <li><a href="#services">Dienstleistungen</a></li>
+          <li><a href="#refs">Referenzen</a></li>
+          <li><a href="#about">Über Uns</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#contact">Kontakt</a></li>
+        </ul>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-outline" href="#contact">Kontakt</a>
+        <a class="btn btn-primary" href="#form">Termin vereinbaren</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="container">
+    <!-- Hero -->
+    <section class="hero section" id="top" aria-labelledby="hero-title">
+      <div class="hero-figure" aria-hidden="true"></div>
+      <span class="chip">24/7 Notfallservice</span>
+      <h1 id="hero-title">Fortgeschrittene ECU Lösungen für Mercedes LKW &amp; LKW</h1>
+      <p>Professionelle ECU-Programmierung, Steuergeräte-Austausch, DPF-Regeneration und Schlüsselcodierung für alle Mercedes LKW und LKW in Mannheim.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#form">Termin vereinbaren</a>
+        <a class="btn btn-outline" href="#contact">Notfall-Support</a>
+      </div>
+    </section>
+
+    <!-- Services -->
+    <section class="section" id="services" aria-labelledby="svc-title">
+      <h2 id="svc-title">Unsere Spezialgebiete</h2>
+      <div class="grid grid-3" style="margin-top:1rem">
+        <article class="card glass">
+          <h3>ECU Programmierung</h3>
+          <p>Wir bieten <strong>spezielle ECU-Programmierung, Optimierung und Software-Updates</strong> für alle Mercedes LKW und LKW an. …</p>
+          <a class="more" href="#contact" aria-label="Mehr über ECU Programmierung">Mehr erfahren →</a>
+        </article>
+        <article class="card glass">
+          <h3>Steuergeräte-Austausch</h3>
+          <p>Wir bieten einen <strong>professionellen Austausch von Motorsteuergeräten (ECU)</strong> …</p>
+          <a class="more" href="#contact">Mehr erfahren →</a>
+        </article>
+        <article class="card glass">
+          <h3>DPF Regeneration</h3>
+          <p>Wir bieten <strong>effektive und dauerhafte Lösungen</strong> …</p>
+          <a class="more" href="#contact">Mehr erfahren →</a>
+        </article>
+        <article class="card glass">
+          <h3>Schlüsselcodierung</h3>
+          <p>Wir bieten professionelle <strong>Schlüsselcodierungs- und Programmierdienste</strong> …</p>
+          <a class="more" href="#contact">Mehr erfahren →</a>
+        </article>
+        <article class="card glass">
+          <h3>Leistungsoptimierung</h3>
+          <p>Wir bieten <strong>spezielle Leistungsoptimierungssoftware</strong> …</p>
+          <a class="more" href="#contact">Mehr erfahren →</a>
+        </article>
+        <article class="card glass">
+          <h3>Umfassende Fehlerdiagnose</h3>
+          <p>Wir verwenden die <strong>neuesten Diagnosegeräte und -software</strong> …</p>
+          <a class="more" href="#contact">Mehr erfahren →</a>
+        </article>
+      </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="section" id="refs" aria-labelledby="ref-title">
+      <h2 id="ref-title">Referenzen</h2>
+      <div class="testi">
+        <figure class="t glass">
+          <q>Mein Mercedes Actros hatte eine Panne, … Absolut empfehlenswert!</q>
+          <figcaption class="who">– Mehmet K., LKW-Fahrer, Köln</figcaption>
+        </figure>
+        <figure class="t glass">
+          <q>Ich hatte DPF-Probleme … Mein LKW läuft jetzt wieder wie neu …</q>
+          <figcaption class="who">– Ayşe S., Inhaberin Spedition, Stuttgart</figcaption>
+        </figure>
+        <figure class="t glass">
+          <q>Ich brauchte einen neuen Schlüssel … Ein vertrauenswürdiges Team!</q>
+          <figcaption class="who">– Jan D., Selbstständiger LKW-Besitzer, Mannheim</figcaption>
+        </figure>
+      </div>
+      <p style="margin-top:.6rem"><a href="#contact" class="more">Hinterlassen Sie eine Bewertung →</a></p>
+    </section>
+
+    <!-- About -->
+    <section class="section" id="about" aria-labelledby="about-title">
+      <h2 id="about-title">Ihr ECU Spezialist in Mannheim</h2>
+      <div class="grid grid-2" style="margin-top:1rem">
+        <div class="glass card">
+          <p>Mit über 20 Jahren fundierter Erfahrung … <strong>rund um die Uhr Notfall-Support</strong>.</p>
+          <h3>Warum Sie uns wählen sollten?</h3>
+          <ul class="bullets">
+            <li><strong>Mercedes Spezialsoftware-Expertise</strong> …</li>
+            <li><strong>Modernste Ausrüstung</strong> …</li>
+            <li><strong>24/7 Notfallservice</strong> …</li>
+            <li><strong>Bestpreisgarantie</strong> …</li>
+          </ul>
+        </div>
+        <figure class="glass card" aria-label="Werkstatt Platzhalterbild">
+          <img src="https://images.unsplash.com/photo-1515923162046-6b2b3760a78e?q=80&w=1600&auto=format&fit=crop" alt="LKW Werkstatt, Diagnosebereich" />
+          <figcaption class="tiny">Bild: Platzhalter – bitte eigenes Foto einsetzen.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- Callout -->
+    <section class="section">
+      <div class="banner glass" role="note" aria-label="Notfall-Hinweis">
+        <div>
+          <h3 style="margin:.2rem 0">Ihr Fahrzeug ist liegen geblieben? Rufen Sie uns jetzt an!</h3>
+          <p class="tiny" style="margin:.2rem 0">Unser Expertenteam ist 24/7 für Sie da.</p>
+        </div>
+        <div>
+          <span class="chip">Notfall-Hotline</span>
+          <div style="margin-top:.4rem; font-weight:800; font-size:1.15rem">+49 123 456 789</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" id="faq" aria-labelledby="faq-title">
+      <h2 id="faq-title">FAQ</h2>
+      <details class="glass">
+        <summary>Wozu dient die ECU-Programmierung?</summary>
+        <div class="tiny" style="margin-top:.6rem">… (Antworttext hier einfügen)</div>
+      </details>
+      <details class="glass">
+        <summary>Warum ist ein Steuergeräte-Austausch notwendig?</summary>
+        <div class="tiny" style="margin-top:.6rem">… (Antworttext hier einfügen)</div>
+      </details>
+      <details class="glass">
+        <summary>Wie lange dauert eine DPF-Regeneration?</summary>
+        <div class="tiny" style="margin-top:.6rem">… (Antworttext hier einfügen)</div>
+      </details>
+      <details class="glass">
+        <summary>Wie funktioniert Ihr 24/7 Notfall-Support?</summary>
+        <div class="tiny" style="margin-top:.6rem">… (Antworttext hier einfügen)</div>
+      </details>
+      <details class="glass">
+        <summary>Sind Ihre Dienstleistungen garantiert?</summary>
+        <div class="tiny" style="margin-top:.6rem">… (Antworttext hier einfügen)</div>
+      </details>
+    </section>
+
+    <!-- Contact -->
+    <section class="section" id="contact" aria-labelledby="contact-title">
+      <h2 id="contact-title">Kontakt</h2>
+      <div class="contact-grid">
+        <div class="glass card">
+          <h3>Adresse &amp; Öffnungszeiten</h3>
+          <p><strong>Einsteinstraße 36, 68169 Mannheim, Deutschland</strong></p>
+          <p><strong>Telefon:</strong> +49 123 456 789<br>
+             <strong>Notfall-Support:</strong> +49 987 654 321<br>
+             <strong>E-Mail:</strong> info@mannheim-ecu.de</p>
+          <h4>Öffnungszeiten</h4>
+          <ul class="tiny">
+            <li><strong>Montag – Samstag:</strong> 08:00 – 18:00 Uhr</li>
+            <li><strong>Sonntag:</strong> 24/7 Notfallservice</li>
+          </ul>
+          <p style="margin-top:.8rem"><a class="btn btn-outline" href="https://wa.me/49123456789" target="_blank" rel="noopener">WhatsApp schreiben</a></p>
+        </div>
+
+        <!-- Form -->
+        <div id="form" class="glass card" aria-labelledby="form-title">
+          <h3 id="form-title">Termin- / Informationsanfrage</h3>
+          <form action="https://formspree.io/f/your-endpoint" method="POST">
+            <div>
+              <label for="name">Ihr Name*</label>
+              <input id="name" name="Name" type="text" placeholder="Vor- und Nachname" required>
+            </div>
+            <div>
+              <label for="phone">Ihre Telefonnummer*</label>
+              <input id="phone" name="Telefon" type="tel" placeholder="+49 …" required>
+            </div>
+            <div>
+              <label for="email">Ihre E-Mail-Adresse</label>
+              <input id="email" name="Email" type="email" placeholder="beispiel@mail.de">
+            </div>
+            <div>
+              <label for="vehicle">Fahrzeuginformationen (Marke, Modell, Baujahr)*</label>
+              <input id="vehicle" name="Fahrzeug" type="text" placeholder="Mercedes Actros, 2018" required>
+            </div>
+            <div>
+              <label for="service">Art der Dienstleistung*</label>
+              <select id="service" name="Dienstleistung" required>
+                <option value="">Bitte wählen…</option>
+                <option>ECU Programmierung</option>
+                <option>Steuergeräte-Austausch</option>
+                <option>DPF Regeneration</option>
+                <option>Schlüsselcodierung</option>
+                <option>Leistungsoptimierung</option>
+                <option>Umfassende Fehlerdiagnose</option>
+                <option>Sonstiges</option>
+              </select>
+            </div>
+            <div>
+              <label for="msg">Ihre Nachricht*</label>
+              <textarea id="msg" name="Nachricht" placeholder="Beschreiben Sie das Problem oder Ihre Anfrage…" required></textarea>
+            </div>
+            <div>
+              <button class="btn btn-primary" type="submit">Termin / Informationsanfrage senden</button>
+            </div>
+            <p class="note">Hinweis: Tragen Sie oben Ihre Daten ein und senden Sie das Formular. Ersetzen Sie im Code den Formspree-Link mit Ihrem echten Endpunkt.</p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer aria-label="Seitenende">
+    <div class="container footer-grid">
+      <div>
+        <p><strong>Mannheim ECU Programmierung</strong> — Ihr zuverlässiger ECU-Spezialist in Mannheim, Deutschland, für Mercedes LKW &amp; LKW.</p>
+        <p class="tiny">© 2023 Mannheim ECU Programmierung. Alle Rechte vorbehalten. | Deutschland, Mannheim</p>
+      </div>
+      <nav aria-label="Schnellzugriff">
+        <p><strong>Quick Links</strong></p>
+        <ul class="tiny" style="list-style:none; padding:0; margin:0">
+          <li><a href="#services">Unsere Dienstleistungen</a></li>
+          <li><a href="#refs">Referenzen</a></li>
+          <li><a href="#about">Über Uns</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#contact">Kontakt</a></li>
+        </ul>
+      </nav>
+      <div>
+        <p><strong>WhatsApp</strong></p>
+        <p class="tiny">Schnelle Antworten per WhatsApp.</p>
+        <p><a class="btn btn-outline" href="https://wa.me/49123456789" target="_blank" rel="noopener">WhatsApp öffnen</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Sticky CTA + WhatsApp -->
+  <div class="sticky-cta" aria-hidden="false">
+    <a class="fab" href="https://wa.me/49123456789" target="_blank" rel="noopener" aria-label="WhatsApp Chat">WA</a>
+    <a class="btn btn-primary" href="#form" aria-label="Termin vereinbaren, Formular öffnen">Termin</a>
+  </div>
+</body>
+</html>
